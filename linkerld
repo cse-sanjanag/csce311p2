@@ -1,0 +1,47 @@
+/* linker.ld — Defines where kernel loads in memory
+   ------------------------------------------------
+   QEMU's virt machine loads the kernel at 0x80200000.
+   Here we place text, data, bss, and a special section
+   (.initramfs) where our ramdisk blob goes.
+*/
+
+ENTRY(_start)
+
+SECTIONS
+{
+  /* Kernel load address (SV39-kernel-compatible) */
+  . = 0x80200000;
+
+  /* All executable code */
+  .text : {
+    PROVIDE (_text = .);
+    *(.text*)
+  }
+
+  /* Read-only data (strings, const globals) */
+  .rodata : {
+    *(.rodata*)
+  }
+
+  /* Writable initialized data */
+  .data : {
+    *(.data*)
+  }
+
+  /* Zero-initialized data (.bss) */
+  .bss : {
+    __bss_start = .;
+    *(.bss*)
+    __bss_end = .;
+  }
+
+  /* Initramfs region (optional small filesystem) */
+  .initramfs : {
+    PROVIDE(_initramfs_start = .);
+    *(.initramfs*)
+    PROVIDE(_initramfs_end = .);
+  }
+
+  /* Throw away compiler metadata */
+  /DISCARD/ : { *(.comment) }
+}
